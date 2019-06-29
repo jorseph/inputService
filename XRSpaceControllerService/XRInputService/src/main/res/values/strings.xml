@@ -1,0 +1,15 @@
+<resources>
+    <string name="app_name">XRSpaceInputService</string>
+    <string name="dlg_device_info">%s\n%s</string>
+    <string name="recyrv_item_info">Rotation:\n\t%s\n\t%s\n\t%s\n\t%s\n</string>
+    <string name="dlg_title">Select devices: %s</string>
+    <string name="display_acc">Acc:\n\t%s\n\t%s\n\t%s\n</string>
+    <string name="display_gyro">Gyro:\n\t%s\n\t%s\n\t%s\n</string>
+    <string name="display_rotation">Rotation:\n\t%s\n\t%s\n\t%s\n\t%s\n</string>
+    <string name="display_gesture">Gesture:\n\t%s\n\t%s\n\t%s\n</string>
+    <string name="display_position">Position:\n\t%s\n\t%s\n\t%s\n</string>
+    <string name="display_timestamp">Timestamp:\n\t%s\n</string>
+
+    <string name="mainact_btn">Scan</string>
+
+</resources>

@@ -1,0 +1,114 @@
+import org.apache.tools.ant.taskdefs.condition.Os
+
+apply plugin: 'com.android.application'
+apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-android-extensions'
+
+android {
+    compileSdkVersion 28
+    buildToolsVersion '28.0.2'
+    defaultConfig {
+        applicationId "io.xrspace.controllers"
+        minSdkVersion 26
+        targetSdkVersion 28
+        versionCode 2
+        versionName "3.0.5"
+        ndk {
+            moduleName "serversocket"
+            ldLibs "log", "z", "m"
+            abiFilters "armeabi-v7a"
+        }
+        setProperty("archivesBaseName", "XRSpaceControllerService")
+    }
+
+    signingConfigs {
+        release {
+            storeFile file("../keystore/Q35_platform.keystore")
+            storePassword 'android'
+            keyAlias 'platform'
+            keyPassword 'android'
+        }
+
+        debug {
+            storeFile file("../keystore/Q35_platform.keystore")
+            storePassword 'android'
+            keyAlias 'platform'
+            keyPassword 'android'
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+
+
+    sourceSets.main {
+        if (Os.isFamily(Os.FAMILY_WINDOWS)) {
+            jni.srcDirs = [] //disable automatic ndk-build call
+        } else {
+            jni.srcDirs = [] //disable automatic ndk-build call
+        }
+    }
+
+
+    task cleanNative(type: Exec, description: 'Clean JNI object files') {
+        Properties properties = new Properties()
+        properties.load(project.rootProject.file('local.properties').newDataInputStream())
+        def ndkDir = properties.getProperty('ndk.dir')
+        if (Os.isFamily(Os.FAMILY_WINDOWS)) {
+            commandLine "$ndkDir/ndk-build.cmd", '-C', file('src/main').absolutePath, 'clean'
+        } else {
+            commandLine "$ndkDir/ndk-build", '-C', file('src/main').absolutePath, 'clean'
+        }
+    }
+
+    // call regular ndk-build(.cmd) script from app directory
+    task ndkBuild(type: Exec) {
+        Properties properties = new Properties()
+        properties.load(project.rootProject.file('local.properties').newDataInputStream())
+        def ndkDir = properties.getProperty('ndk.dir')
+        if (Os.isFamily(Os.FAMILY_WINDOWS)) {
+            commandLine "$ndkDir/ndk-build.cmd", '-C', file('src/main').absolutePath
+        } else {
+            commandLine "$ndkDir/ndk-build", '-C', file('src/main').absolutePath
+        }
+    }
+    externalNativeBuild {
+        ndkBuild {
+            path file('src/main/jni/Android.mk')
+        }
+    }
+
+    clean.dependsOn 'cleanNative'
+
+    tasks.withType(JavaCompile) {
+        compileTask -> compileTask.dependsOn ndkBuild
+    }
+    android {
+        lintOptions {
+            abortOnError false
+        }
+    }
+
+    android.applicationVariants.all { variant ->
+        variant.outputs.all {
+            def releaseTime = new Date().format("yyyy-MM-dd", TimeZone.getTimeZone("UTC"))
+            def name = project.name
+            outputFileName = "${name}-${releaseTime}-${variant.name}-v${variant.versionName}.apk"
+        }
+    }
+}
+
+dependencies {
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+    implementation 'com.android.support:appcompat-v7:28.0.0'
+    implementation 'com.android.support.constraint:constraint-layout:1.1.3'
+    implementation 'com.android.support:recyclerview-v7:28.0.0'
+    implementation 'com.android.support:cardview-v7:28.0.0'
+}
+repositories {
+    mavenCentral()
+}
